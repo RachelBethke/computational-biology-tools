@@ -7,8 +7,15 @@ import random
 
 
 # In[28]:
-# Input matrices 
 def load_haplotype_data(file_path):
+    """
+    Can be used to load haplotype files and parse haplo data to be analyzed.
+    
+    Args:
+        file_path: A file containing haplotype data in whitespace between blocks and commas seperating numerical values.
+    
+    Returns: pd.DataFrame: Parsed haplotype data
+    """
     with open(file_path, 'r') as file:    # 'r' = read mode
         blocks = file.read().split('\n\n')   #split file in to blocks from newlines
         block = random.choice(blocks)
@@ -21,24 +28,16 @@ def load_haplotype_data(file_path):
         return pd.DataFrame(processed_lines).astype(int) 
     # each block consists of haplotypes from 50 individuals (rows)
 
-# Initialize a list to store each haplotype matrix
-haplotype_blocks = []
-
-# Need to do the following for all 4 blocks selected from the 4 files.
-#hapmx = pd.read_csv('ConGensData1block1.txt', sep = ',', header=None)
-hapmx1 = load_haplotype_data('Data/ConsGenData1.txt')
-hapmx2 = load_haplotype_data('Data/ConsGenData2.txt')
-hapmx3 = load_haplotype_data('Data/ConsGenData3.txt')
-hapmx4 = load_haplotype_data('Data/ConsGenData4.txt')
-
-haplotype_blocks.extend([hapmx1, hapmx2, hapmx3, hapmx4])
-
-print(haplotype_blocks[0]) #display first matrix for reference
-
-
 # In[29]:
-# Calculate nucelotide diversity (pi)
 def calc_pi(haplotypes):
+    """
+    Calculates nucleotide diversity (pi) for the given haplotype data.
+    
+    Args:
+        haplotypes (pd.DataFrame): A DataFrame containing haplotype data (rows represent individuals, columns represent loci).
+    
+    Returns: float: The calculated nucleotide diversity (pi) value.
+    """
     # variables
     n = haplotypes.shape[0]  # number of haplotypes (rows)
     L = haplotypes.shape[1]  # number of loci (columns)
@@ -55,15 +54,17 @@ def calc_pi(haplotypes):
     pi = pi_total / L  # avg nucleotide diversity
     return pi
 
-for i, haplotype_block in enumerate(haplotype_blocks):
-    result_pi = calc_pi(haplotype_block)
-    #edited to look at each block
-    print(f"Nucleotide diversity (pi) for block {i+1}: {result_pi}")
-
 
 # In[31]:
-# Calculate the number of segregating sites (S)
 def count_segregating_sites(haplotypes):
+    """
+    Can be used to calculate the number of segregating sites.
+    
+    Args:
+        haplotypes (pd.DataFrame): A DataFrame containing haplotype data.
+        
+    Returns: int: the number segregating sites (S) in the given haplotype data
+    """
     n = len(haplotypes.axes[1])
     S = 0
     for i in range(0,n):
@@ -73,14 +74,16 @@ def count_segregating_sites(haplotypes):
             S = S + 1
     return S
 
-for i, hapmx in enumerate(haplotype_blocks):
-    result_S = count_segregating_sites(hapmx)
-    print(f"Number of segregating sites (S) for block {i+1}: {result_S} out of {haplotype_block.shape[1]} sites.")
-
-
 # In[32]:
-# Calculate Wattersons theta
 def calc_watterson(haplotypes):
+    """
+    Calculates Watterson's theta for the given haplotype data.
+    
+    Args:
+        haplotypes (pd.DataFrame): A DataFrame containing haplotype data.
+    
+    Returns: float: Watterson's theta value.
+    """
     n = haplotypes.shape[0]  # number of haplotypes (rows)
     L = haplotypes.shape[1]  # number of loci (columns)
     # S = segregating sites
@@ -96,14 +99,18 @@ def calc_watterson(haplotypes):
         theta = 0
     return theta
 
-for i, hapmx in enumerate(haplotype_blocks):
-    result_watt = calc_watterson(hapmx)
-    print(f"Wattersons theta for block {i+1}: {result_watt}")
 
 
 # In[36]:
-# Calculate Tajima's D
 def tajimas_d(haplotypes):
+    """
+    Calculates Tajima's D for the given haplotype data.
+    
+    Args:
+        haplotypes (pd.DataFrame): A DataFrame containing haplotype data.
+    
+    Returns: float: Tajima's D value.
+    """
     # variables
     n = haplotypes.shape[0]  # number of haplotypes (rows)
     pi = calc_pi(haplotypes)
@@ -132,8 +139,3 @@ def tajimas_d(haplotypes):
     else:
         tajimas_d = 0
     return tajimas_d
-
-# made it a for loop to show all the blocks
-for i, hapmx in enumerate(haplotype_blocks):
-    result_tajimas_d = tajimas_d(hapmx)
-    print(f"Tajima's D for block {i+1}: {result_tajimas_d}")
