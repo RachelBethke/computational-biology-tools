@@ -49,6 +49,7 @@ def calc_pi(haplotypes):
         p = np.sum(haplotypes.iloc[:, k] == 1)  # number of derived alleles (1's) at loci k
         h_k = 2 * p * (n - p) / (n * (n - 1))
         pi_total += h_k
+        #print(f"Locus {k}: p = {p}, h_k = {h_k}")
     
     #formula
     pi = pi_total / L  # avg nucleotide diversity
@@ -85,13 +86,18 @@ def calc_watterson(haplotypes):
     Returns: float: Watterson's theta value.
     """
     n = haplotypes.shape[0]  # number of haplotypes (rows)
+
+    if n <= 1: # edge case
+        return 0 
+    
     L = haplotypes.shape[1]  # number of loci (columns)
     # S = segregating sites
     S = count_segregating_sites(haplotypes)
     # a = sum(1/i)
-    a = 0
-    for i in range(1,n):
-        a += (1/i)
+    # a = 0
+    # for i in range(1,n):
+    #     a += (1/i)
+    a = np.sum([1/i for i in range(1, n)])
     # pi = S / a ...
     if a != 0:
         theta = S / a
