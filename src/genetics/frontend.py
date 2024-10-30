@@ -3,10 +3,11 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
-import core
+from . import core
 
-# Function to load haplotype data from a file
+# Rest of your code stays the same
 def load_haplotype_data(file_path):
     """
     Loads haplotype data from a specified text file.
@@ -35,21 +36,12 @@ def process_file(haplotype_data):
     Args: 
         haplotype_data (pd.DataFrame): The processed haplotype data.
     """
-    pass
-
-# Plot the haplotype data
-def plot_data(haplotype_data):
-    """
-    Plots the haplotype data as a histogram using matplotlib.
-    
-    Args: 
-        haplotype_data (pd.DataFrame): The haplotype data to be plotted.
-    """
     try:
-        pi = (core.calc_pi(haplotype_data))
+        pi = core.calc_pi(haplotype_data)
         watts_theta = core.calc_watterson(haplotype_data)
         tajima_d = core.tajimas_d(haplotype_data)
-                # Update result display
+        
+        # Update result display
         result_text = (
             f"Nucleotide Diversity (π): {pi:.4f}\n"
             f"Watterson's Theta: {watts_theta:.4f}\n"
@@ -57,10 +49,35 @@ def plot_data(haplotype_data):
         )
         result_label.config(text=result_text)
         
-        # Optional: plot histogram of nucleotide diversity
-        plot_data(haplotype_data)
+        # Create plot
+        create_plot(haplotype_data)
+        
     except Exception as e:
         handle_file_error(e)
+
+def create_plot(haplotype_data):
+    """
+    Creates and displays a plot of the haplotype data.
+    
+    Args: 
+        haplotype_data (pd.DataFrame): The haplotype data to be plotted.
+    """
+    # Clear any existing plot
+    for widget in plot_frame.winfo_children():
+        widget.destroy()
+    
+    # Create new plot
+    fig, ax = plt.subplots(figsize=(8, 4))
+    frequencies = haplotype_data.mean()
+    ax.bar(range(len(frequencies)), frequencies)
+    ax.set_title('Allele Frequencies')
+    ax.set_xlabel('Position')
+    ax.set_ylabel('Frequency')
+    
+    # Add plot to GUI
+    canvas = FigureCanvasTkAgg(fig, master=plot_frame)
+    canvas.draw()
+    canvas.get_tk_widget().pack(fill='both', expand=True)
 
 # Function to handle file loading and error handling
 def load_file():
@@ -68,9 +85,17 @@ def load_file():
     Opens a file dialog to select a haplotype file, processes the file, and displays the results.
     Calls error handling if the file cannot be processed.
     """
-    pass
+    try:
+        file_path = filedialog.askopenfilename(
+            filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")]
+        )
+        if file_path:
+            haplotype_data = load_haplotype_data(file_path)
+            process_file(haplotype_data)
+    except Exception as e:
+        handle_file_error(e)
 
-# Optional: Function to handle errors during file processing
+# Function to handle errors during file processing
 def handle_file_error(e):
     """
     Handles errors that occur during the file loading process and displays a message box with the error information.
@@ -83,14 +108,26 @@ def handle_file_error(e):
 # Tkinter UI setup
 root = tk.Tk()  # Create the main window
 root.title("Conservation Genomics Tool")  # Set the window title
+root.geometry("800x600")  # Set window size
+
+# Create main container frame
+main_frame = tk.Frame(root)
+main_frame.pack(expand=True, fill='both', padx=10, pady=10)
 
 # Add a button to upload a haplotype file
-upload_button = tk.Button(root, text="Upload Haplotype File", command=load_file)
+upload_button = tk.Button(main_frame, text="Upload Haplotype File", command=load_file)
 upload_button.pack(pady=10)  # Add padding to the button
 
 # Add a label to display the results
-result_label = tk.Label(root, text="Results will be displayed here")
+result_label = tk.Label(main_frame, text="Results will be displayed here")
 result_label.pack(pady=20)  # Add padding to the label
 
-# Start the Tkinter event loop (this keeps the window open and responsive)
-root.mainloop()
+# Add frame for plotting
+plot_frame = tk.Frame(main_frame)
+plot_frame.pack(expand=True, fill='both', pady=10)
+
+def main():
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
