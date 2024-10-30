@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-import Calculations
+import core
 
 # Function to load haplotype data from a file
 def load_haplotype_data(file_path):
@@ -46,9 +46,9 @@ def plot_data(haplotype_data):
         haplotype_data (pd.DataFrame): The haplotype data to be plotted.
     """
     try:
-        pi = (Calculations.calc_pi(haplotype_data))
-        watts_theta = Calculations.calc_watterson(haplotype_data)
-        tajima_d = Calculations.tajimas_d(haplotype_data)
+        pi = (core.calc_pi(haplotype_data))
+        watts_theta = core.calc_watterson(haplotype_data)
+        tajima_d = core.tajimas_d(haplotype_data)
                 # Update result display
         result_text = (
             f"Nucleotide Diversity (π): {pi:.4f}\n"
