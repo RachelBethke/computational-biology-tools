@@ -1,5 +1,9 @@
 README.md
 setup.py
+src/genetics/__init__.py
+src/genetics/__main__.py
+src/genetics/core.py
+src/genetics/frontend.py
 src/genetics.egg-info/PKG-INFO
 src/genetics.egg-info/SOURCES.txt
 src/genetics.egg-info/dependency_links.txt

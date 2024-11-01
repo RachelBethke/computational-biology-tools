@@ -5,7 +5,6 @@ from itertools import combinations
 import random
 #from scipy.stats import tajima_d
 
-
 # In[28]:
 def load_haplotype_data(file_path):
     """
