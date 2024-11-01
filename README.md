@@ -62,7 +62,7 @@ python -m genetics
 - [x] Core calculation testing
 - [x] Basic GUI implementation
 - [x] Single plot visualization
-- [ ] Block selection interface
+- [x] Block selection interface
 - [ ] Additional conservation metrics (?)
 - [ ] Visualization options and selection
 - [ ] GUI testing
