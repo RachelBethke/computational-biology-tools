@@ -6,3 +6,4 @@ venv/
 **/*.pyc
 .pytest_cache/
 .DS_Store
+data/haplotype/frontend_testing_data.txt

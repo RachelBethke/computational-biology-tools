@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
 import numpy as np
-from src import calc_pi, calc_watterson, tajimas_d
+from src.genetics.core import calc_pi, calc_watterson, tajimas_d 
 
 class TestGenomicsCalculations(unittest.TestCase):
     
