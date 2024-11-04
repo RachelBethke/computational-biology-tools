@@ -65,7 +65,7 @@ python -m genetics
 - [x] Block selection interface
 - [ ] Additional conservation metrics (?)
 - [ ] Visualization options and selection
-- [ ] GUI testing
+- [x] GUI testing
 - [ ] Data export capabilities
 
 ### Interlude: Toolkit Structure
