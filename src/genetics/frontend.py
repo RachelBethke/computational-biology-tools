@@ -3,9 +3,12 @@ from tkinter import filedialog, messagebox, ttk
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #, PdfPages
 import random
+#import openpyxl #for export funcionality
 from . import core
+
+fig = None #plot var
 
 def load_haplotype_data(file_path):
     """
@@ -18,7 +21,7 @@ def load_haplotype_data(file_path):
     Returns: tuple: (pd.DataFrame, list) - The processed haplotype data and list of all blocks
     """
     with open(file_path, 'r') as file:
-        blocks = file.read().split('\n\n')  # Split file into blocks
+        blocks = file.read().split('\n\n')  # split file into blocks
         return blocks
     
 def process_block(block):
@@ -52,10 +55,11 @@ def block_choice(blocks):
     """
     selection = block_var.get()
     if not hasattr(block_choice, 'blocks'):
-        return
-        
+        return  
     if selection == "Random":
         block = random.choice(block_choice.blocks)
+    # elif selection == "All":
+    #     block = blocks
     else:
         block_idx = int(selection.split()[1]) - 1
         block = block_choice.blocks[block_idx]
@@ -63,19 +67,14 @@ def block_choice(blocks):
     haplotype_data = process_block(block)
     process_file(haplotype_data)
 
-# Process the file and display results
 def process_file(haplotype_data):
-    """
-    Processes the haplotype data by calculating diversity metrics and updating the UI with the results.
-    
-    Args: 
-        haplotype_data (pd.DataFrame): The processed haplotype data.
-    """
+    global pi, watts_theta, tajima_d  # Declare these as global
     try:
+        # Calculate metrics
         pi = core.calc_pi(haplotype_data)
         watts_theta = core.calc_watterson(haplotype_data)
         tajima_d = core.tajimas_d(haplotype_data)
-        
+
         # Update result display
         result_text = (
             f"Nucleotide Diversity (π): {pi:.4f}\n"
@@ -83,12 +82,12 @@ def process_file(haplotype_data):
             f"Tajima's D: {tajima_d:.4f}"
         )
         result_label.config(text=result_text)
-        
+
         # Create plot
         create_plot(haplotype_data)
-        
     except Exception as e:
         handle_file_error(e)
+
 
 def create_plot(haplotype_data):
     """
@@ -97,12 +96,14 @@ def create_plot(haplotype_data):
     Args: 
         haplotype_data (pd.DataFrame): The haplotype data to be plotted.
     """
+    global fig  # Declare fig as global so it can be accessed for export
+
     # Clear any existing plot
     for widget in plot_frame.winfo_children():
         widget.destroy()
 
-    plt.close('all') # Deal with memory leakage
-    
+    plt.close('all')  # Prevent memory leakage
+
     # Create new plot
     fig, ax = plt.subplots(figsize=(8, 4))
     frequencies = haplotype_data.mean()
@@ -110,13 +111,13 @@ def create_plot(haplotype_data):
     ax.set_title('Allele Frequencies')
     ax.set_xlabel('Position')
     ax.set_ylabel('Frequency')
-    
+
     # Add plot to GUI
     canvas = FigureCanvasTkAgg(fig, master=plot_frame)
     canvas.draw()
     canvas.get_tk_widget().pack(fill='both', expand=True)
 
-# Function to handle file loading and error handling
+
 def load_file():
     """
     Opens a file dialog to select a haplotype file, processes the file, and displays the results.
@@ -133,6 +134,7 @@ def load_file():
             
             # Update dropdown menu
             block_options = ["Random"] + [f"Block {i+1}" for i in range(len(blocks)) if blocks[i].strip()]
+            #["All"]?
             block_dropdown['values'] = block_options
             block_dropdown['state'] = 'readonly'
             block_var.set("Random")
@@ -145,8 +147,6 @@ def load_file():
     except Exception as e:
         handle_file_error(e)
 
-# Function to handle errors during file processing
-# TODO: Make the message more specific, when you upload wrong files it says division by zero
 def handle_file_error(e):
     """
     Handles errors that occur during the file loading process and displays 
@@ -161,6 +161,100 @@ def handle_file_error(e):
         error_msg = f"Failed to process file: {str(e)}"
     messagebox.showerror("Error", error_msg)
 
+def export_results():
+    """
+    Exports the calculated results to a CSV or Excel file.
+    """
+    try:
+        # make sure we have metrics
+        if not all(var in globals() for var in ['pi', 'watts_theta', 'tajima_d']):
+            raise ValueError("Metrics have not been calculated yet. Please upload a file first.")
+        metrics = {
+            "Nucleotide Diversity (π)": pi,
+            "Watterson's Theta": watts_theta,
+            "Tajima's D": tajima_d
+        }
+        df = pd.DataFrame([metrics])
+        file_path = filedialog.asksaveasfilename( # find file destination
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("Excel files", "*.xlsx")]
+        )
+
+        if file_path:
+            # Save as CSV or Excel
+            if file_path.endswith('.xlsx'):
+                df.to_excel(file_path, index=False)
+            else:
+                df.to_csv(file_path, index=False)
+
+            messagebox.showinfo("Export Successful", f"Results saved to {file_path}")
+    except Exception as e:
+        messagebox.showerror("Export Failed", f"Error while exporting results: {e}")
+
+def export_plot():
+    """
+    Exports the currently displayed plot as an image (PNG or PDF).
+    """
+    global fig  # ensure fig is accessible
+    try:
+        # check if fig exists
+        if 'fig' not in globals() or fig is None:
+            raise ValueError("No plot available to export. Please upload a file and generate the plot first.")
+       
+        file_path = filedialog.asksaveasfilename(  # ask for file destination
+            defaultextension=".png",
+            filetypes=[("PNG files", "*.png"), ("PDF files", "*.pdf")]
+        )
+
+        if file_path:
+            fig.savefig(file_path)
+            messagebox.showinfo("Export Successful", f"Plot saved to {file_path}")
+    except Exception as e:
+        messagebox.showerror("Export Failed", f"Error while exporting plot: {e}")
+
+
+
+def handle_export_selection(selection, dialog):
+    """
+    Handles the export process based on the user's selection.
+    
+    Args:
+        selection (str): The selected export option.
+        dialog (tk.Toplevel): The pop-up dialog to close after selection.
+    """
+    dialog.destroy() # close window
+
+    try:
+        if selection == "Results Only":
+            export_results()
+        elif selection == "Graph Only":
+            export_plot()
+        elif selection == "Both":
+            export_results()
+            export_plot()
+    except Exception as e:
+        messagebox.showerror("Export Failed", f"Error while exporting: {e}")
+
+
+def open_export_dialog():
+    """
+    Opens a dialog for selecting export options (Results, Graph, or Both).
+    """
+    # make a new pop-up
+    dialog = tk.Toplevel(root)
+    dialog.title("Export Options")
+    dialog.geometry("300x200")
+
+    tk.Label(dialog, text="Select what to export:").pack(pady=10) #selection options
+
+    export_option = tk.StringVar(value="Results Only") # default
+
+    options = ["Results Only", "Graph Only", "Both"]
+    for option in options:
+        tk.Radiobutton(dialog, text=option, variable=export_option, value=option).pack(anchor=tk.W)
+
+    tk.Button(dialog, text="Export", command=lambda: handle_export_selection(export_option.get(), dialog)).pack(pady=20)
+
 #Tkinter UI setup
 root = tk.Tk()  # makes the main window
 root.title("Conservation Genomics Tool")  #window title
@@ -169,11 +263,16 @@ root.geometry("800x600")  # window size
 def show(): 
     tk.label.config( text = tk.licked.get() ) 
 
-# Create main container frame
+# container 
 main_frame = tk.Frame(root)
 main_frame.pack(expand=True, fill='both', padx=10, pady=10)
 
-# Add a button to upload a haplotype file
+#export_button = tk.Button(main_frame, text="Export Results", command=lambda: export_results())
+#export_button.pack(pady=10)
+export_selection_button = tk.Button(main_frame, text="Export", command=open_export_dialog)
+export_selection_button.pack(pady=10)
+
+# upload a haplotype file
 upload_button = tk.Button(main_frame, text="Upload Haplotype File", command=load_file)
 upload_button.pack(pady=10)  # Add padding to the button
 
@@ -193,7 +292,7 @@ block_dropdown.pack(side=tk.LEFT, padx=5)
 result_label = tk.Label(main_frame, text="Results will be displayed here")
 result_label.pack(pady=20)  # Add padding to the label
 
-# Add frame for plotting
+#frame for plotting
 plot_frame = tk.Frame(main_frame)
 plot_frame.pack(expand=True, fill='both', pady=10)
 

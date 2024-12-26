@@ -66,7 +66,8 @@ python -m genetics
 - [ ] Additional conservation metrics (?)
 - [ ] Visualization options and selection
 - [x] GUI testing
-- [ ] Data export capabilities
+- [x] Data export capabilities
+- [ ] Option to show all blocks (?)
 
 ### Interlude: Toolkit Structure
 - [ ] Restructure project for multiple tools
