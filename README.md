@@ -9,14 +9,18 @@ A Python toolkit for computational biology analysis, providing interactive inter
 - Cross-platform compatibility
 
 ## Current Implementation: Conservation Genetics Module
-The first module focuses on conservation genetics analysis, featuring:
+The currently implemented module focuses on conservation genetics analysis, featuring:
 - Loading and analysis of haplotype data
 - Calculation of key genetic diversity metrics:
   - Nucleotide diversity (π)
   - Watterson's theta
   - Tajima's D
+- Block-based analysis of haplotype datasets
 - Interactive visualization of allele frequencies
-- GUI interface for easy data exploration
+- GUI interface for data exploration and comparison
+- Export of calculated metrics for downstream analysis
+
+This module represents the primary completed and actively developed component of the toolkit.
 
 ## Getting Started
 
@@ -57,17 +61,15 @@ python -m genetics
 
 ## Current Development Plans
 
-### Phase 1: Conservation Genetics (Current)
-- [x] Core diversity metrics
+### Phase 1: Conservation Genetics (Core Module)
+- [x] Core diversity metrics (π, Watterson’s θ, Tajima’s D)
 - [x] Core calculation testing
 - [x] Basic GUI implementation
 - [x] Single plot visualization
 - [x] Block selection interface
-- [ ] Additional conservation metrics (?)
-- [ ] Visualization options and selection
 - [x] GUI testing
 - [x] Data export capabilities
-- [ ] Option to show all blocks (?)
+- [ ] Option to show all blocks
 
 ### Interlude: Toolkit Structure
 - [ ] Restructure project for multiple tools
